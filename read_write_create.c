@@ -20,7 +20,7 @@ int read_file(char* str, FILE* file);
 //char** findTextFiles(char *path);
 char **findTextFiles(char *path, int *count);
 char* concate_str(char *path, char *entry_name);
-void archive(char *path);
+void archive();
 void mergeTextFiles(char **files, int count, const char *outputFile);
 
 
@@ -120,19 +120,19 @@ int main(int argc, char **argv){
     scanf("%d", &menu);
     switch (menu) {
         case 1:
-            char str[100]; // создаем массив символов для хранения строки
-    printf("Введите строку: ");
-    scanf("%s", str); // считываем строку с помощью функции scanf()
-    printf("Вы ввели: %s", str); // выводим строку на экран
-            archive(str);
+            //char str[100]; // создаем массив символов для хранения строки
+            //printf("Введите строку: ");
+            //scanf("%s", str); // считываем строку с помощью функции scanf()
+            //printf("Вы ввели: %s", str); // выводим строку на экран
+            archive();
 
             break;
         case 2:
-            char str2[100]; // создаем массив символов для хранения строки
-    printf("Введите строку: ");
-    scanf("%s", str2); // считываем строку с помощью функции scanf()
-    printf("Вы ввели: %s", str2); // выводим строку на экран
-            my_split(str2);
+            //char str2[100]; // создаем массив символов для хранения строки
+            //printf("Введите строку: ");
+            //scanf("%s", str2); // считываем строку с помощью функции scanf()
+            //printf("Вы ввели: %s", str2); // выводим строку на экран
+            my_split("/home/bokar/Documents/LR1");
 
             break;
         default:
@@ -147,8 +147,8 @@ int main(int argc, char **argv){
 //cc -o read_write_create.exe read_write_create.c
 //./read_write_create.exe
 }
-void archive(char *path){
-
+void archive(){
+    char *path = "/home/bokar/Documents/LR1";
     int count = 0;
     char **files = findTextFiles(path, &count);
 
