@@ -37,6 +37,7 @@
   "files.associations": {
     "*.ejs": "html",
     "*.py": "python",
-    "type_traits": "c"
+    "type_traits": "c",
+    "typeinfo": "c"
   }
 }
