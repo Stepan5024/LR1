@@ -1,5 +1,18 @@
-<<<</home/bokar/Documents/LR1/Степан/new.txt|||33204|||
+<<<</home/bokar/Documents/LR1//новый файл.txt|||33204|||
+Хороший текстовых
+54321
+4321
+321
+21
+1
+
+
+>>>>
+<<<</home/bokar/Documents/LR1//Степан/new.txt|||33204|||
 1
 12
 123
+
+
+
 >>>>

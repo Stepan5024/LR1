@@ -36,18 +36,6 @@ void fileSetPermissionsCStr(char const *path, char permissions) {
         
     }
 }
-/*int fileSetPermissionsCStr(const char *filename, const char *permissionCode) {
-    int result = -1;
-    mode_t mode = strtol(permissionCode, NULL, 8); // преобразуем строку в восьмеричное число
-
-    if (chmod(filename, mode) == 0) {
-        result = 0;
-    } else {
-        perror("fileSetPermissionsCStr");
-    }
-
-    return result;
-}*/
 
 // Функция, которая создает новый файл и записывает в него данные
 void create_new_file(char *filename, char *data) {
@@ -122,46 +110,51 @@ void free_concate_str(char *str) {
 // /home/bokar/Documents/LR2 LR2
 // /home/bokar/Documents/LR1
 char **findTextFiles(const char *path, int *count) {
+    //  директория, указанная в аргументе path
     DIR *dir;
+    // Структура, содержащая информацию о текущей записи в директории
     struct dirent *entry;
+    // Выделяем память для массива, содержащего имена файлов
     char **files = malloc(sizeof(char *) * MAX_FILES_PATH_LEN);
+    // Инициализируем счетчик файлов
     int i = 0;
+    // Создаем буфер для форматирования пути
     char formatted_path[LEN];
+    // Копируем путь в буфер
     snprintf(formatted_path, sizeof(formatted_path), "%s", path);
-
+    // Если не удалось открыть директорию, выводим сообщение об ошибке и завершаем программу
     if (!(dir = opendir(formatted_path))) {
         fprintf(stderr, "Could not open directory: %s\n", formatted_path);
         exit(1);
     }
-
+    // Читаем записи из директории, пока они не закончатся
     while ((entry = readdir(dir)) != NULL) {
-        // Проверяем, является ли текущий элемент директорией
+        // Если текущая запись - директория, то рекурсивно вызываем функцию findTextFiles
         if (entry->d_type == DT_DIR) {
-        // Создаем новый путь для текущей директории
-        char newPath[1024];
-        // Проверяем, что имя текущей директории не "." или ".."
-        if (strcmp(entry->d_name, ".") == 0 || strcmp(entry->d_name, "..") == 0) {
-            // Если имя директории "." или "..", пропускаем ее
-            continue;
-        }
-        // Формируем новый путь, добавляя к текущему пути имя директории
-        snprintf(newPath, sizeof(newPath), "%s/%s", path, entry->d_name);
-        // Рекурсивно вызываем функцию для поиска текстовых файлов в новом пути
-        char **subFiles = findTextFiles(newPath, count);
-        // Если в новом пути были найдены текстовые файлы
-        if (subFiles != NULL) {
-            // Добавляем их в массив найденных файлов
-            for (int j = 0; subFiles[j] != NULL; j++) {
-                files[i] = subFiles[j];
-                i++;
-              }
-            // Освобождаем память, выделенную под массив найденных файлов
-            free(subFiles);
+            // Создаем новый путь, добавляя к текущему пути имя директории
+            char newPath[1024];
+             // Если имя директории "." или "..", то пропускаем ее
+            if (strcmp(entry->d_name, ".") == 0 || strcmp(entry->d_name, "..") == 0) {
+                continue;
+            }
+             // Форматируем новый путь
+            snprintf(newPath, sizeof(newPath), "%s/%s", path, entry->d_name);
+            // Рекурсивно вызываем функцию findTextFiles для нового пути
+            char **subFiles = findTextFiles(newPath, count);
+            // Если возвращенный массив не пустой, то добавляем его элементы в основной массив
+            if (subFiles != NULL) {
+                for (int j = 0; subFiles[j] != NULL; j++) {
+                    files[i] = subFiles[j];
+                    i++;
+                }
+                free(subFiles);
             }
         } else {
+            // Функция strrchr находит последнее вхождение в str
             char *dot = strrchr(entry->d_name, '.');
+            //strcmp функция сравнивает посимвольно строки, переданные ей в качестве аргументов
             if (dot && strcmp(dot, ".txt") == 0) {
-                //printf("Found text file: %s/%s\n", path, entry->d_name);
+                printf("Found text file: %s/%s\n", path, entry->d_name);
 
                 char *filename = concate_str(path, entry->d_name);
         
@@ -169,31 +162,6 @@ char **findTextFiles(const char *path, int *count) {
                 strcpy(files[i], filename);
                 free_concate_str(filename);
                 i++;
-            
-            // Ищем последнюю точку в имени файла
-            char *dot = strrchr(entry->d_name, '.');
-
-
-            // Если точка найдена и расширение файла ".txt"
-            if (dot != NULL && strcmp(dot, ".txt") == 0) {
-            // Выводим сообщение о найденном текстовом файле
-            printf("Найден текстовый файл: %s/%s\n", path, entry->d_name);
-
-            // Объединяем путь и имя файла в одну строку
-            char* filename = concate_str(path, entry->d_name);
-
-            // Выделяем память под строку с именем файла и копируем туда объединенную строку
-            files[i] = malloc(strlen(filename) + 1);
-            strcpy(files[i], filename);
-
-            // Освобождаем память, выделенную под объединенную строку
-            free_concate_str(filename);
-
-             // Увеличиваем счетчик найденных файлов
-             i++;
-            }
-            
-            
             }
         }
     }
@@ -221,6 +189,7 @@ void mergeTextFiles(char **files, int count, const char *outputFile) {
     }
 
     fclose(fp);
+    
 }
 
 int write_file(char* str, int len_chars, FILE* file){
@@ -234,8 +203,9 @@ bool isCorrectNameFile(const char* filename){
 
     int str_len = strlen(filename);
     int suffix_len = strlen(suffix);
-// Проверяем, что длина строки меньше длины суффикса 
-// или последние символы строки не совпадают с суффиксом
+    // Сравниваем подстроку имени файла, начиная с позиции (длина имени - длина суффикса)
+    // и до конца имени, с переданным суффиксом
+    // strcmp сравнение строк
     if (str_len < suffix_len || strcmp(filename + str_len - suffix_len, suffix) != 0) {
         return false;
     } 
@@ -245,22 +215,25 @@ bool isCorrectNameFile(const char* filename){
 }
 // Функция для проверки существования директории по переданному пути
 bool directoryExists(const char *path) {
-    // Создаем структуру stat, в которую будут записаны данные о файле/директории
     struct stat info;
-    // Вызываем функцию stat для получения информации о файле/директории по переданному пути
-    // Если функция вернет ненулевое значение, значит файл/директория не существует
+    // Проверяем существование файла или каталога по переданному пути
+    // и получаем информацию о нем с помощью функции stat()
     if (stat(path, &info) != 0) {
+         // Если файл или каталог не существует, возвращаем false
         return false;
     }
-    // Проверяем, является ли файл/директория директорией
-    // Если да, то возвращаем true, иначе - false
+    // Проверяем, является ли объект по указанному пути каталогом
+    // с помощью макроса S_IFDIR и операции побитового И (&)
     return (info.st_mode & S_IFDIR) != 0;
 }
 
 // Функция для создания директорий по переданному пути, если они отсутствуют
 
 bool createDirectories(const char *rootPath, const char *path) {
+    // Создаем копию переданного пути
     char *pathCopy = strdup(path);
+    // Инициализируем указатель на первый каталог в пути
+    // используя функцию strtok() для разделения строки по символу "/"
     char *dirName = strtok(pathCopy, "/");
     char *subDirPath = NULL;
     bool success = true;
@@ -276,6 +249,8 @@ bool createDirectories(const char *rootPath, const char *path) {
     strcat(fullPath, path);
 
     while (dirName != NULL) {
+        // Если subDirPath еще не инициализирован, то создаем копию первого каталога
+        // и сохраняем ее в subDirPath
         if (subDirPath == NULL) {
             subDirPath = strdup(dirName);
         } else {
@@ -323,61 +298,8 @@ bool createDirectories(const char *rootPath, const char *path) {
     free(fullPath);
     return success;
 }
-/*bool createDirectories(const char *rootPath, const char *path) {
-    char *pathCopy = strdup(path);
-    char *dirName = strtok(pathCopy, "/");
-    char *subDirPath = NULL;
-    bool success = true;
 
-    // Добавляем корневой путь к переданному пути
-    //char *fullPath = (char *) malloc(strlen(rootPath) + strlen(path) + 2);
-    char *fullPath = (char *) realloc(subDirPath, strlen(subDirPath) + strlen(dirName) + 2);
-    if (fullPath == NULL) {
-        free(subDirPath);
-        return NULL; // или какое-то другое действие при ошибке
-    }
-    subDirPath = fullPath;
-    
-    
-    strcpy(fullPath, rootPath);
-    strcat(fullPath, "/");
-    strcat(fullPath, path);
 
-    while (dirName != NULL) {
-        if (subDirPath == NULL) {
-            subDirPath = strdup(dirName);
-        } else {
-            subDirPath = (char *) realloc(subDirPath, strlen(subDirPath) + strlen(dirName) + 2);
-            strcat(subDirPath, "/");
-            strcat(subDirPath, dirName);
-        }
-
-        // Добавляем корневой путь к текущему пути
-        char *fullSubPath = (char *) malloc(strlen(rootPath) + strlen(subDirPath) + 2);
-        strcpy(fullSubPath, rootPath);
-        strcat(fullSubPath, "/");
-        strcat(fullSubPath, subDirPath);
-
-        if (!directoryExists(fullSubPath)) {
-            if (mkdir(fullSubPath, 0777) != 0) {
-                success = false;
-                free(pathCopy);
-                free(subDirPath);
-                free(fullPath);
-                free(fullSubPath);
-                return success;
-            }
-        }
-
-        free(fullSubPath);
-        dirName = strtok(NULL, "/");
-    }
-
-    free(pathCopy);
-    free(subDirPath);
-    free(fullPath);
-    return success;
-}*/
 
 char* getFilePath(const char* filename) {
     char* path = NULL;
@@ -505,6 +427,14 @@ void my_split(const char* filename){
     fclose(fp);
 }
 
+void removeArchiveFile(const char* path) {
+    // Проверяем существование файла
+    if (remove(path) == 0) {
+        printf("Файл %s существующего архива .\n", path);
+    } else {
+        printf("Could not remove file %s.\n", path);
+    }
+}
 
 void archive(){
     char path[LEN];
@@ -516,6 +446,10 @@ void archive(){
     ///home/bokar/Documents/LR2 LR2
     //const char *path = "/home/bokar/Documents/LR1"; // путь архивации директориии
     int count = 0;
+    char *result = concate_str(path, "output.txt");
+    removeArchiveFile(result);
+    free_concate_str(result);
+    
     char ** files = findTextFiles(path, &count);
 
     if (count > 0) {
@@ -528,7 +462,7 @@ void archive(){
     }
 
     for (int i = 0; i < count; i++) {
-        printf("%s\n", files[i]);
+        printf("Заархивирован %s\n", files[i]);
         free(files[i]);
     }
     free(files);
@@ -567,4 +501,3 @@ int main() {
 
     return 0;
 }
-
